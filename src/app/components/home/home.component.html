@@ -1,0 +1,293 @@
+<div class="d-flex" id="wrapper">
+
+  <!--  Sidebar-->
+  <div class="bg-light border-right" id="sidebar-wrapper">
+
+    <div class="sidebar-heading">{{'Nutrition Analysis'}}</div>
+
+    <div class="list-group list-group-flush" style="margin-top: 12px !important;">
+      <mat-divider class="mt-2"></mat-divider>
+      <!--      <button [relativeTo]="route" [routerLink]="['test']" class="list-group-item list-group-item-action bg-light">Test-->
+      <!--        Header-->
+      <!--      </button>-->
+
+    </div>
+  </div>
+
+  <!--  Header-->
+  <div id="page-content-wrapper">
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+      <button aria-label="menu-toggle" color="primary" id="menu-toggle" mat-icon-button>
+        <mat-icon>menu</mat-icon>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+          <li class="nav-item active">
+            <!--            <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>-->
+          </li>
+
+        </ul>
+      </div>
+    </nav>
+
+    <!--  Body-->
+    <div class="container-fluid">
+      <mat-toolbar class="mt-1">{{'Home'}} </mat-toolbar>
+
+      <div class="row p-2">
+        <button (click)="resetForm();openEnterIngredients = true;" class="col-lg-3"
+                label="{{'New Recipe'}}" pButton></button>
+      </div>
+
+      <mat-spinner diameter="80" *ngIf="loading" class="offset-lg-5"></mat-spinner>
+
+      <div *ngIf="!loading" class="col-12 p-1" style="background-color:rgba(234,232,232,0.87); ">
+
+        <mat-card class="col-lg-8 border-1 ">
+
+          <form *ngIf="openEnterIngredients ">
+            <mat-form-field appearance="outline">
+              <mat-label>Enter Ingredients:</mat-label>
+              <textarea #autosize="cdkTextareaAutosize"
+                        (keypress)="triggerArea()"
+                        (ngModelChange)="triggerArea()"
+                        [(ngModel)]="inputTextArea"
+                        (keyup)="changeInput()"
+                        cdkAutosizeMinRows="5"
+                        cdkTextareaAutosize matInput
+                        name="textArea"
+                        [placeholder]="'Each line should contain food name, quantity and unit'"></textarea>
+            </mat-form-field>
+
+
+            <div class="row">
+              <button (click)="submitForm()" [disabled]="!inputTextArea?.length"
+                      class="p-button-success col-lg-4" label="Success" label="{{'Analyse'}}" pButton
+                      type="button"></button>
+            </div>
+
+          </form>
+
+          <div *ngIf="inputTextAreaArrayDataSource.data.length" class="mt-2">
+            <mat-divider></mat-divider>
+            <mat-toolbar style="">
+              {{'Nutrition Details'}}
+            </mat-toolbar>
+            <mat-card class="mat-elevation-z8 example-container">
+              <table [dataSource]="inputTextAreaArrayDataSource" class="" mat-table>
+
+                <ng-container matColumnDef="{{displayedColumns[0]}}">
+                  <th *matHeaderCellDef mat-header-cell> {{displayedColumns[0]}} </th>
+                  <td *matCellDef="let element" mat-cell> {{element.parsed[0].quantity}} </td>
+                </ng-container>
+                <ng-container matColumnDef="{{displayedColumns[1]}}">
+                  <th *matHeaderCellDef mat-header-cell> {{displayedColumns[1]}} </th>
+                  <td *matCellDef="let element" mat-cell> {{element.parsed[0].measure}} </td>
+                </ng-container>
+                <ng-container matColumnDef="{{displayedColumns[2]}}">
+                  <th *matHeaderCellDef mat-header-cell> {{displayedColumns[2]}} </th>
+                  <td *matCellDef="let element" mat-cell> {{element.parsed[0].foodMatch}} </td>
+                </ng-container>
+                <ng-container matColumnDef="{{displayedColumns[3]}}">
+                  <th *matHeaderCellDef mat-header-cell> {{displayedColumns[3]}} </th>
+                  <td *matCellDef="let element"
+                      mat-cell> {{element.parsed[0].nutrients.ENERC_KCAL.quantity | number:'0.0-0' }}
+                    {{' ' + element.parsed[0].nutrients.ENERC_KCAL.unit}} </td>
+                </ng-container>
+                <ng-container matColumnDef="{{displayedColumns[4]}}">
+                  <th *matHeaderCellDef mat-header-cell> {{displayedColumns[4]}} </th>
+                  <td *matCellDef="let element" mat-cell> {{element.parsed[0].weight | number:'0.0-0'}} {{' g'}} </td>
+                </ng-container>
+
+
+                <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
+                <tr *matRowDef="let row; columns: displayedColumns;" mat-row></tr>
+              </table>
+            </mat-card>
+
+          </div>
+
+          <div *ngIf="inputTextAreaArrayDataSource.data.length" class="row p-1 mt-5">
+
+            <button (click)="viewTotal = true;" class="col-lg-4"
+                    label="{{'Show Total Nutrition'}}"
+                    pButton></button>
+
+            <div *ngIf="viewTotal" class="row mt-3 ">
+              <mat-toolbar>
+                {{'Total Nutrition'}}
+              </mat-toolbar>
+
+              <mat-card class="mat-elevation-z8 example-container">
+                <table class="table">
+                  <tr>
+                    <td>
+                      <p class="fw-bold">
+                        <mat-label>{{'Calories'}}:</mat-label>
+                        <br>
+                        <span class="badge bg-primary">
+                    &nbsp;
+                          {{totalNutrition?.ENERC_KCAL?.quantity | number:'0.0-0'  }}
+                          &nbsp; {{totalNutrition?.ENERC_KCAL?.unit}}
+                  </span>
+                      </p>
+                    </td>
+                    <td>
+                      <p class=" fw-bold">
+                        <mat-label>{{'Total Fat'}}:</mat-label>
+                        <br>
+                        <span class="badge bg-primary">
+                    &nbsp;
+                          {{totalNutrition?.FAT?.quantity | number:'0.0-0'  }}&nbsp;{{totalNutrition?.FAT?.unit }}
+                          ({{totalDaily?.FAT?.quantity | number:'0.0-0' }}  {{totalDaily?.FAT?.unit}})
+                  </span>
+                      </p>
+                    </td>
+                    <td>
+                      <p class=" fw-bold">
+                        <mat-label>{{'Saturated Fat'}}:</mat-label>
+                        <br>
+                        <span class="badge bg-primary">
+                    &nbsp;
+                          {{totalNutrition?.FASAT?.quantity | number:'0.0-0'  }}&nbsp;{{totalNutrition?.FASAT?.unit }}
+                          ({{totalDaily?.FASAT?.quantity | number:'0.0-0' }}  {{totalDaily?.FASAT?.unit}})
+                  </span>
+                      </p>
+                    </td>
+                    <td>
+                      <p class=" fw-bold">
+                        <mat-label>{{'Cholesterol '}}:</mat-label>
+                        <br>
+                        <span class="badge bg-primary">
+                    &nbsp;
+                          {{totalNutrition?.CHOLE?.quantity | number:'0.0-0'  }}&nbsp;{{totalNutrition?.CHOLE?.unit }}
+                          ({{totalDaily?.CHOLE?.quantity | number:'0.0-0' }}  {{totalDaily?.CHOLE?.unit}})
+                  </span>
+                      </p>
+                    </td>
+                    <td>
+                      <p class=" fw-bold">
+                        <mat-label>{{'Sodium '}}:</mat-label>
+                        <br>
+                        <span class="badge bg-primary">
+                    &nbsp;
+                          {{totalNutrition?.NA?.quantity | number:'0.0-0'  }}&nbsp;{{totalNutrition?.NA?.unit }}
+                          ({{totalDaily?.NA?.quantity | number:'0.0-0' }}  {{totalDaily?.NA?.unit}})
+                  </span>
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class=" fw-bold">
+                        <mat-label>{{'Total Carbohydrate'}}:</mat-label>
+                        <br>
+                        <span class="badge bg-primary">
+                    &nbsp;
+                          {{totalNutrition?.CHOCDF?.quantity | number:'0.0-0'  }}&nbsp;{{totalNutrition?.CHOCDF?.unit }}
+                          ({{totalDaily?.CHOCDF?.quantity | number:'0.0-0' }}  {{totalDaily?.CHOCDF?.unit}})
+                  </span>
+                      </p>
+                    </td>
+                    <td>
+                      <p class=" fw-bold">
+                        <mat-label>{{'Dietary Fiber'}}:</mat-label>
+                        <br>
+                        <span class="badge bg-primary">
+                    &nbsp;
+                          {{totalNutrition?.FIBTG?.quantity | number:'0.0-0'  }}&nbsp;{{totalNutrition?.FIBTG?.unit }}
+                          ({{totalDaily?.FIBTG?.quantity | number:'0.0-0' }}  {{totalDaily?.FIBTG?.unit}})
+                  </span>
+                      </p>
+                    </td>
+                    <td>
+                      <p class=" fw-bold">
+                        <mat-label>{{'Total Sugars '}}:</mat-label>
+                        <br>
+                        <span class="badge bg-primary">
+                    &nbsp;
+                          {{totalNutrition?.SUGAR?.quantity | number:'0.0-0'  }}&nbsp;{{totalNutrition?.SUGAR?.unit }}
+                          ({{totalDaily?.SUGAR?.quantity | number:'0.0-0' }}  {{totalDaily?.SUGAR?.unit}})
+                  </span>
+                      </p>
+                    </td>
+                    <td>
+                      <p class="fw-bold">
+                        <mat-label>{{'Protein '}}:</mat-label>
+                        <br>
+                        <span class="badge bg-primary">
+                    &nbsp;
+                          {{totalNutrition?.PROCNT?.quantity | number:'0.0-0'  }}&nbsp;{{totalNutrition?.PROCNT?.unit }}
+                          ({{totalDaily?.PROCNT?.quantity | number:'0.0-0' }}  {{totalDaily?.PROCNT?.unit}})
+                  </span>
+                      </p>
+                    </td>
+                    <td>
+                      <p class="fw-bold">
+                        <mat-label>{{'Vitamin D 0 '}}:</mat-label>
+                        <br>
+                        <span class="badge bg-primary">
+                    &nbsp;
+                          {{totalNutrition?.VITD?.quantity | number:'0.0-0'  }}&nbsp;{{totalNutrition?.VITD?.unit }}
+                          ({{totalDaily?.VITD?.quantity | number:'0.0-0' }}  {{totalDaily?.VITD?.unit}})
+                  </span>
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p class="fw-bold">
+                        <mat-label>{{'Calcium'}}:</mat-label>
+                        <br>
+                        <span class="badge bg-primary">
+                    &nbsp;
+                          {{totalNutrition?.CA?.quantity | number:'0.0-0'  }}&nbsp;{{totalNutrition?.CA?.unit }}
+                          ({{totalDaily?.CA?.quantity | number:'0.0-0' }}  {{totalDaily?.CA?.unit}})
+                  </span>
+                      </p>
+                    </td>
+                    <td>
+                      <p class="fw-bold">
+                        <mat-label>{{'Iron '}}:</mat-label>
+                        <br>
+                        <span class="badge bg-primary">
+                    &nbsp;
+                          {{totalNutrition?.FE?.quantity | number:'0.0-0'  }}&nbsp;{{totalNutrition?.FE?.unit }}
+                          ({{totalDaily?.FE?.quantity | number:'0.0-0' }}  {{totalDaily?.FE?.unit}})
+                  </span>
+                      </p>
+                    </td>
+                    <td>
+                      <p class="fw-bold">
+                        <mat-label>{{'Potassium '}}:</mat-label>
+                        <br>
+                        <span class="badge bg-primary">
+                    &nbsp;
+                          {{totalNutrition?.K?.quantity | number:'0.0-0'  }}&nbsp;{{totalNutrition?.K?.unit }}
+                          ({{totalDaily?.K?.quantity | number:'0.0-0' }}  {{totalDaily?.K?.unit}})
+                  </span>
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </mat-card>
+
+
+            </div>
+
+
+          </div>
+
+
+        </mat-card>
+
+      </div>
+
+      <router-outlet></router-outlet>
+
+    </div>
+  </div>
+
+
+</div>
